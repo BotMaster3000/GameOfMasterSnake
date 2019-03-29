@@ -43,6 +43,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Enums\TileValues.cs" />
+    <Compile Include="Interfaces\IGameMap.cs" />
+    <Compile Include="Interfaces\ITile.cs" />
+    <Compile Include="Map\OldGameMap.cs" />
     <Compile Include="Map\GameMap.cs" />
     <Compile Include="Map\Tile.cs" />
     <Compile Include="Program.cs" />
@@ -50,7 +54,9 @@
     <Compile Include="Snake\SnakeGame.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="App.config" />
+    <None Include="App.config">
+      <SubType>Designer</SubType>
+    </None>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

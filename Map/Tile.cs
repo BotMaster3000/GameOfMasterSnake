@@ -1,15 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using GameOfMasterSnake.Enums;
+using GameOfMasterSnake.Interfaces;
 
 namespace GameOfMasterSnake.Map
 {
-    public class Tile
+    public class Tile : ITile
     {
-        public int yPos;
-        public int xPos;
         public int value;
+
+        public int XPos { get; set; }
+        public int YPos { get; set; }
+        public TileValues Value { get; set; }
     }
 }

@@ -3,73 +3,57 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using GameOfMasterSnake.Enums;
+using GameOfMasterSnake.Interfaces;
 
 namespace GameOfMasterSnake.Map
 {
-    public class GameMap
+    public class GameMap : IGameMap
     {
-        public readonly Tile[] tiles;
+        public ITile[] Tiles { get; private set; }
+        public int Width { get; }
+        public int Height { get; }
 
-        public int height;
-        public int width;
-
-        public GameMap(int height, int width, int defaultTileValue = 0)
+        public GameMap(int width, int height)
         {
-            tiles = new Tile[height * width];
+            Width = width;
+            Height = height;
 
-            this.height = height;
-            this.width = width;
+            InitializeGameMap();
+        }
 
+        private void InitializeGameMap()
+        {
+            InitializeTilesArray();
+            FillTilesArray();
+        }
+
+        private void InitializeTilesArray()
+        {
+            Tiles = new ITile[Width * Height];
+        }
+
+        private void FillTilesArray()
+        {
             int counter = 0;
-            for (int y = 0; y < height; ++y)
+            for (int xPos = 0; xPos < Width; ++xPos)
             {
-                for (int x = 0; x < width; ++x)
+                for (int yPos = 0; yPos < Height; ++yPos)
                 {
-                    tiles[counter] = new Tile() { yPos = y, xPos = x, value = defaultTileValue };
-
+                    Tiles[counter] = new Tile() { XPos = xPos, YPos = yPos, Value = TileValues.Empty };
                     ++counter;
                 }
             }
         }
 
-        private Tile GetTile(int yPos, int xPos)
+        public ITile GetTile(int xPos, int yPos)
         {
-            if (tiles == null || tiles.Length == 0)
-            {
-                return null;
-            }
-
-            for (int i = 0; i < tiles.Length; ++i)
-            {
-                if (tiles[i].yPos == yPos && tiles[i].xPos == xPos)
-                {
-                    return tiles[i];
-                }
-            }
-            return null;
+            return Array.Find(Tiles, x => x.XPos == xPos && x.YPos == yPos);
         }
 
-        public int GetTileValueAtCoordinates(int yPos, int xPos)
+        public void SetTileValue(TileValues value, int xPos, int yPos)
         {
-            Tile tile = GetTile(yPos, xPos);
-            if (tile == null)
-            {
-                return -1;
-            }
-            else
-            {
-                return tile.value;
-            }
-        }
-
-        public void SetTileValueAtCoordinates(int yPos, int xPos, int newValue)
-        {
-            Tile tile = GetTile(yPos, xPos);
-
-            if (tile != null)
-            {
-                tile.value = newValue;
-            }
+            GetTile(xPos, yPos).Value = value;
         }
     }
 }

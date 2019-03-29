@@ -13,7 +13,7 @@ namespace GameOfMasterSnake.Snake
 
         private enum Direction { Up, Right, Down, Left, None }
 
-        public readonly Map.GameMap map;
+        public readonly Map.OldGameMap map;
 
         public int currentSnakeLength;
         private Direction currentSnakeDirection = Direction.None;
@@ -25,7 +25,7 @@ namespace GameOfMasterSnake.Snake
 
         public SnakeGame(int height, int width, int initialSnakeLength)
         {
-            map = new Map.GameMap(height, width);
+            map = new Map.OldGameMap(height, width);
 
             currentSnakeLength = initialSnakeLength;
         }
@@ -215,7 +215,7 @@ namespace GameOfMasterSnake.Snake
             {
                 for (int i = 0; i < map.tiles.Length; ++i)
                 {
-                    if (map.tiles[i].yPos == currentYPos && map.tiles[i].xPos == currentXPos)
+                    if (map.tiles[i].YPos == currentYPos && map.tiles[i].XPos == currentXPos)
                     {
                         //Console.Write(map.tiles[i].value);
                         if (map.tiles[i].value == -2)
@@ -271,7 +271,7 @@ namespace GameOfMasterSnake.Snake
             
             for(int i = 0; i < map.tiles.Length; ++i)
             {
-                if(map.tiles[i].yPos == yPos && map.tiles[i].xPos == xPos)
+                if(map.tiles[i].YPos == yPos && map.tiles[i].XPos == xPos)
                 {
                     map.tiles[i].value = currentSnakeLength;
 
