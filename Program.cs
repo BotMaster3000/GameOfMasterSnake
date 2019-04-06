@@ -53,7 +53,7 @@ namespace GameOfMasterSnake
                     currentSnakeGame.PlaceSnakeOnMap();
 
                     int iterationsSinceLastFood = 0;
-                    int previousSnakeLength = currentSnakeGame.currentSnakeLength;
+                    int previousSnakeLength = currentSnakeGame.SnakeLength;
                     const int FORCE_BREAK_AFTER_ITERATIONS = 100;
 
 
@@ -70,10 +70,10 @@ namespace GameOfMasterSnake
                         currentSnakeGame.NextRound();
 
                         ++iterationsSinceLastFood;
-                        if (currentSnakeGame.currentSnakeLength > previousSnakeLength)
+                        if (currentSnakeGame.SnakeLength > previousSnakeLength)
                         {
                             iterationsSinceLastFood = 0;
-                            previousSnakeLength = currentSnakeGame.currentSnakeLength;
+                            previousSnakeLength = currentSnakeGame.SnakeLength;
                         }
                         if (iterationsSinceLastFood >= FORCE_BREAK_AFTER_ITERATIONS)
                         {
@@ -82,7 +82,7 @@ namespace GameOfMasterSnake
 
                     }
                     // Set Fitness
-                    algorithm.SetFitness(currentNetwork, currentSnakeGame.currentSnakeLength * currentSnakeGame.TotalMoves);
+                    algorithm.SetFitness(currentNetwork, currentSnakeGame.SnakeLength * currentSnakeGame.TotalMoves);
                 }
                 algorithm.BreedBestNetworks();
                 ++generation;
@@ -111,15 +111,15 @@ namespace GameOfMasterSnake
 
             return new double[INPUT_NODES]
             {
-                game.currentSnakeXPosition,
-                game.currentSnakeYPosition,
-                (double)game.currentSnakeDirection,
+                game.SnakeXPos,
+                game.SnakeYPos,
+                (double)game.Direction,
                 nextObstacleLeftDistance,
                 nextObstacleUpDistance,
                 nextObstacleDownDistance,
                 nextObstacleRightDistance,
-                game.FoodXPosition,
-                game.FoodYPosition,
+                game.FoodXPos,
+                game.FoodYPos,
             };
         }
 
@@ -130,11 +130,11 @@ namespace GameOfMasterSnake
             switch (direction)
             {
                 case Direction.Left:
-                    for (int xPos = game.currentSnakeXPosition - 1; xPos >= 0; --xPos)
+                    for (int xPos = game.SnakeXPos - 1; xPos >= 0; --xPos)
                     {
-                        if (game.map.GetTile(xPos, game.currentSnakeYPosition).Value == TileValues.Snake)
+                        if (game.Map.GetTile(xPos, game.SnakeYPos).Value == TileValues.Snake)
                         {
-                            value = game.currentSnakeXPosition - xPos;
+                            value = game.SnakeXPos - xPos;
                             value = value >= 0 ? value : -value;
                             tileFound = true;
                             break;
@@ -142,15 +142,15 @@ namespace GameOfMasterSnake
                     }
                     if (!tileFound)
                     {
-                        value = game.currentSnakeXPosition;
+                        value = game.SnakeXPos;
                     }
                     break;
                 case Direction.Up:
-                    for (int yPos = game.currentSnakeYPosition - 1; yPos >= 0; --yPos)
+                    for (int yPos = game.SnakeYPos - 1; yPos >= 0; --yPos)
                     {
-                        if (game.map.GetTile(game.currentSnakeXPosition, yPos).Value == TileValues.Snake)
+                        if (game.Map.GetTile(game.SnakeXPos, yPos).Value == TileValues.Snake)
                         {
-                            value = game.currentSnakeYPosition - yPos;
+                            value = game.SnakeYPos - yPos;
                             value = value >= 0 ? value : -value;
                             tileFound = true;
                             break;
@@ -158,15 +158,15 @@ namespace GameOfMasterSnake
                     }
                     if (!tileFound)
                     {
-                        value = game.currentSnakeYPosition;
+                        value = game.SnakeYPos;
                     }
                     break;
                 case Direction.Right:
-                    for (int xPos = game.currentSnakeXPosition + 1; xPos >= 0; ++xPos)
+                    for (int xPos = game.SnakeXPos + 1; xPos < game.Map.Width; ++xPos)
                     {
-                        if (game.map.GetTile(xPos, game.currentSnakeYPosition).Value == TileValues.Snake)
+                        if (game.Map.GetTile(xPos, game.SnakeYPos).Value == TileValues.Snake)
                         {
-                            value = game.currentSnakeXPosition - xPos;
+                            value = game.SnakeXPos - xPos;
                             value = value >= 0 ? value : -value;
                             tileFound = true;
                             break;
@@ -174,15 +174,15 @@ namespace GameOfMasterSnake
                     }
                     if (!tileFound)
                     {
-                        value = game.currentSnakeXPosition;
+                        value = game.SnakeXPos;
                     }
                     break;
                 case Direction.Down:
-                    for (int yPos = game.currentSnakeYPosition + 1; yPos >= 0; ++yPos)
+                    for (int yPos = game.SnakeYPos + 1; yPos < game.Map.Height; ++yPos)
                     {
-                        if (game.map.GetTile(game.currentSnakeXPosition, yPos).Value == TileValues.Snake)
+                        if (game.Map.GetTile(game.SnakeXPos, yPos).Value == TileValues.Snake)
                         {
-                            value = game.currentSnakeYPosition - yPos;
+                            value = game.SnakeYPos - yPos;
                             value = value >= 0 ? value : -value;
                             tileFound = true;
                             break;
@@ -190,7 +190,7 @@ namespace GameOfMasterSnake
                     }
                     if (!tileFound)
                     {
-                        value = game.currentSnakeYPosition;
+                        value = game.SnakeYPos;
                     }
                     break;
             }

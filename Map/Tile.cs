@@ -11,7 +11,7 @@ namespace GameOfMasterSnake.Map
         public int YPos { get; }
         public TileValues Value { get; private set; }
         public bool HasChanged { get; set; }
-        public int SnakeLife { get => throw new System.NotImplementedException(); set => throw new System.NotImplementedException(); }
+        public int SnakeLife { get; set; }
 
         public Tile(int xPos, int yPos)
         {

@@ -49,6 +49,7 @@ namespace GameOfMasterSnake.Map
 
         public ITile GetTile(int xPos, int yPos)
         {
+            return Tiles.FirstOrDefault(x => x.XPos == xPos && x.YPos == yPos);
             return Array.Find(Tiles, x => x.XPos == xPos && x.YPos == yPos);
         }
 

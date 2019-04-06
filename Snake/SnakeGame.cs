@@ -10,28 +10,29 @@ using NeuralBotMasterFramework.Helper;
 
 namespace GameOfMasterSnake.Snake
 {
-    public class SnakeGame
+    public class SnakeGame : ISnakeGame
     {
-        public readonly IGameMap map;
+        public IGameMap Map { get; }
+        public IMapPrinter Printer { get; }
 
-        public int currentSnakeLength;
-        public Direction currentSnakeDirection = Direction.None;
+        public int SnakeXPos { get; private set; } = -1;
+        public int SnakeYPos { get; private set; } = -1;
+        public int SnakeLength { get; private set; }
+        public Direction Direction { get; private set; }
 
-        public int TotalMoves;
+        public int FoodXPos { get; set; }
+        public int FoodYPos { get; set; }
 
-        public int currentSnakeXPosition = -1;
-        public int currentSnakeYPosition = -1;
+        public bool IsFoodPlaced { get; private set; }
 
-        public int FoodXPosition { get; set; }
-        public int FoodYPosition { get; set; }
-
-        bool foodIsPlaced = false;
+        public int TotalMoves { get; private set; }
 
         public SnakeGame(int height, int width, int initialSnakeLength)
         {
-            map = new Map.GameMap(height, width);
+            Map = new Map.GameMap(height, width);
+            Printer = new Output.ConsolePrinter();
 
-            currentSnakeLength = initialSnakeLength;
+            SnakeLength = initialSnakeLength;
         }
 
         public void BeginGame()
@@ -44,7 +45,6 @@ namespace GameOfMasterSnake.Snake
 
             while (!PlayerGameOver())
             {
-
                 MoveSnake();
                 DrawMap();
                 CheckForDirectionChange();
@@ -65,22 +65,22 @@ namespace GameOfMasterSnake.Snake
 
         private void PlaceFood()
         {
-            if (foodIsPlaced)
+            if (IsFoodPlaced)
             {
                 return;
             }
-            int yPos = RandomNumberGenerator.GetNextNumber(0, map.Height - 1);
-            int xPos = RandomNumberGenerator.GetNextNumber(0, map.Width - 1);
+            int yPos = RandomNumberGenerator.GetNextNumber(0, Map.Height - 1);
+            int xPos = RandomNumberGenerator.GetNextNumber(0, Map.Width - 1);
 
-            ITile tile = map.GetTile(xPos, yPos);
+            ITile tile = Map.GetTile(xPos, yPos);
             if (tile.Value == TileValues.Empty)
             {
                 // Food has a Tile-Value of -2. Should switch these Values to Enumerators at some point
                 tile.SetValue(TileValues.Food);
-                foodIsPlaced = true;
+                IsFoodPlaced = true;
 
-                FoodXPosition = xPos;
-                FoodYPosition = yPos;
+                FoodXPos = xPos;
+                FoodYPos = yPos;
             }
             else
             {
@@ -96,27 +96,27 @@ namespace GameOfMasterSnake.Snake
                 switch (keyInfo.Key)
                 {
                     case ConsoleKey.UpArrow:
-                        if (currentSnakeDirection != Direction.Up && currentSnakeDirection != Direction.Down)
+                        if (Direction != Direction.Up && Direction != Direction.Down)
                         {
-                            currentSnakeDirection = Direction.Up;
+                            Direction = Direction.Up;
                         }
                         break;
                     case ConsoleKey.RightArrow:
-                        if (currentSnakeDirection != Direction.Right && currentSnakeDirection != Direction.Left)
+                        if (Direction != Direction.Right && Direction != Direction.Left)
                         {
-                            currentSnakeDirection = Direction.Right;
+                            Direction = Direction.Right;
                         }
                         break;
                     case ConsoleKey.DownArrow:
-                        if (currentSnakeDirection != Direction.Down && currentSnakeDirection != Direction.Up)
+                        if (Direction != Direction.Down && Direction != Direction.Up)
                         {
-                            currentSnakeDirection = Direction.Down;
+                            Direction = Direction.Down;
                         }
                         break;
                     case ConsoleKey.LeftArrow:
-                        if (currentSnakeDirection != Direction.Left && currentSnakeDirection != Direction.Right)
+                        if (Direction != Direction.Left && Direction != Direction.Right)
                         {
-                            currentSnakeDirection = Direction.Left;
+                            Direction = Direction.Left;
                         }
                         break;
                 }
@@ -127,11 +127,16 @@ namespace GameOfMasterSnake.Snake
         {
             // Decreases tileValue by one, if it is above 0
             // It is supposed to unset the tail of the snake, to simulate its movement
-            for (int i = 0; i < map.Tiles.Length; ++i)
+            for (int i = 0; i < Map.Tiles.Length; ++i)
             {
-                if (map.Tiles[i].SnakeLife > 0)
+                ITile currentTile = Map.Tiles[i];
+                if (currentTile.SnakeLife > 0)
                 {
-                    --map.Tiles[i].SnakeLife;
+                    --currentTile.SnakeLife;
+                    if(currentTile.SnakeLife <= 0)
+                    {
+                        currentTile.SetValue(TileValues.Empty);
+                    }
                 }
             }
 
@@ -139,7 +144,7 @@ namespace GameOfMasterSnake.Snake
 
             int xIncrement = 0;
             int yIncrement = 0;
-            switch (currentSnakeDirection)
+            switch (Direction)
             {
                 case Direction.Up:
                     yIncrement = -1;
@@ -155,21 +160,23 @@ namespace GameOfMasterSnake.Snake
                     break;
             }
 
-            currentSnakeXPosition += xIncrement;
-            currentSnakeYPosition += yIncrement;
+            SnakeXPos += xIncrement;
+            SnakeYPos += yIncrement;
 
-            ITile tile = map.GetTile(currentSnakeXPosition, currentSnakeYPosition);
-
-            // It is being determined, if there is food, and if, the Snake-Length gets increased by one and
-            // The food is no longer Placed, forcing a new Food-Tile next turn
-            if (tile.Value == TileValues.Food)
+            ITile tile = Map.GetTile(SnakeXPos, SnakeYPos);
+            if (tile != null)
             {
-                ++currentSnakeLength;
-                foodIsPlaced = false;
-            }
+                // It is being determined, if there is food, and if, the Snake-Length gets increased by one and
+                // The food is no longer Placed, forcing a new Food-Tile next turn
+                if (tile.Value == TileValues.Food)
+                {
+                    ++SnakeLength;
+                    IsFoodPlaced = false;
+                }
 
-            tile.SetValue(TileValues.Snake);
-            tile.SnakeLife = currentSnakeLength;
+                tile.SetValue(TileValues.Snake);
+                tile.SnakeLife = SnakeLength;
+            }
 
             ++TotalMoves;
         }
@@ -184,29 +191,29 @@ namespace GameOfMasterSnake.Snake
         {
             // If the Player is somewhere out of the map, he has lost
             if (
-                currentSnakeXPosition <= -1
-                || currentSnakeXPosition >= map.Width
-                || currentSnakeYPosition <= -1
-                || currentSnakeYPosition >= map.Height
+                SnakeXPos <= -1
+                || SnakeXPos >= Map.Width
+                || SnakeYPos <= -1
+                || SnakeYPos >= Map.Height
                 )
             {
                 return true;
             }
 
             TileValues tileValue = TileValues.None;
-            switch (currentSnakeDirection)
+            switch (Direction)
             {
                 case Direction.Up:
-                    tileValue = map.GetTile(currentSnakeXPosition, currentSnakeYPosition - 1).Value;
+                    tileValue = Map.GetTile(SnakeXPos, SnakeYPos - 1)?.Value ?? TileValues.None;
                     break;
                 case Direction.Right:
-                    tileValue = map.GetTile(currentSnakeXPosition + 1, currentSnakeYPosition).Value;
+                    tileValue = Map.GetTile(SnakeXPos + 1, SnakeYPos)?.Value ?? TileValues.None;
                     break;
                 case Direction.Down:
-                    tileValue = map.GetTile(currentSnakeXPosition, currentSnakeYPosition + 1).Value;
+                    tileValue = Map.GetTile(SnakeXPos, SnakeYPos + 1)?.Value ?? TileValues.None;
                     break;
                 case Direction.Left:
-                    tileValue = map.GetTile(currentSnakeXPosition - 1, currentSnakeYPosition).Value;
+                    tileValue = Map.GetTile(SnakeXPos - 1, SnakeYPos)?.Value ?? TileValues.None;
                     break;
                 default:
                     // If Direction is Null, there has to be an error, so game over.
@@ -219,80 +226,39 @@ namespace GameOfMasterSnake.Snake
 
         private void DrawMap()
         {
-            if (map.Tiles == null || map.Tiles.Length == 0)
-            {
-                return;
-            }
-
-            Console.Clear();
-
-            int currentYPos = 0;
-            int currentXPos = 0;
-
-            for (int tileCounter = 0; tileCounter < map.Tiles.Length; ++tileCounter)
-            {
-                for (int i = 0; i < map.Tiles.Length; ++i)
-                {
-                    if (map.Tiles[i].YPos == currentYPos && map.Tiles[i].XPos == currentXPos)
-                    {
-                        //Console.Write(map.tiles[i].value);
-                        if (map.Tiles[i].Value == TileValues.Food)
-                        {
-                            Console.Write("F");
-                        }
-                        else if (map.Tiles[i].Value == TileValues.Empty)
-                        {
-                            Console.Write(TileValues.Empty);
-                        }
-                        else
-                        {
-                            Console.Write("S");
-                        }
-
-                        ++currentXPos;
-
-                        if (currentXPos >= map.Width)
-                        {
-                            Console.WriteLine();
-                            ++currentYPos;
-                            currentXPos = 0;
-                        }
-                        break;
-                    }
-                }
-            }
+            Printer.DrawMap(Map);
         }
 
         public void PlaceSnakeOnMap()
         {
-            int yPos = RandomNumberGenerator.GetNextNumber(0, map.Height - 1);
-            int xPos = RandomNumberGenerator.GetNextNumber(0, map.Width - 1);
+            int yPos = RandomNumberGenerator.GetNextNumber(0, Map.Height - 1);
+            int xPos = RandomNumberGenerator.GetNextNumber(0, Map.Width - 1);
 
-            currentSnakeYPosition = yPos;
-            currentSnakeXPosition = xPos;
+            SnakeYPos = yPos;
+            SnakeXPos = xPos;
 
             switch (RandomNumberGenerator.GetNextNumber(0, 3))
             {
                 case 0:
-                    currentSnakeDirection = Direction.Up;
+                    Direction = Direction.Up;
                     break;
                 case 1:
-                    currentSnakeDirection = Direction.Right;
+                    Direction = Direction.Right;
                     break;
                 case 2:
-                    currentSnakeDirection = Direction.Down;
+                    Direction = Direction.Down;
                     break;
                 case 3:
-                    currentSnakeDirection = Direction.Left;
+                    Direction = Direction.Left;
                     break;
             }
 
-            for (int i = 0; i < map.Tiles.Length; ++i)
+            for (int i = 0; i < Map.Tiles.Length; ++i)
             {
-                if (map.Tiles[i].YPos == yPos && map.Tiles[i].XPos == xPos)
+                if (Map.Tiles[i].YPos == yPos && Map.Tiles[i].XPos == xPos)
                 {
-                    map.Tiles[i].SnakeLife = currentSnakeLength;
-                    map.Tiles[i].SetValue(TileValues.Snake);
+                    Map.Tiles[i].SnakeLife = SnakeLength;
+                    Map.Tiles[i].SetValue(TileValues.Snake);
                     break;
                 }
             }
@@ -303,30 +269,35 @@ namespace GameOfMasterSnake.Snake
             switch (direction)
             {
                 case Direction.Up:
-                    if (currentSnakeDirection != Direction.Up && currentSnakeDirection != Direction.Down)
+                    if (Direction != Direction.Up && Direction != Direction.Down)
                     {
-                        currentSnakeDirection = Direction.Up;
+                        Direction = Direction.Up;
                     }
                     break;
                 case Direction.Right:
-                    if (currentSnakeDirection != Direction.Right && currentSnakeDirection != Direction.Left)
+                    if (Direction != Direction.Right && Direction != Direction.Left)
                     {
-                        currentSnakeDirection = Direction.Right;
+                        Direction = Direction.Right;
                     }
                     break;
                 case Direction.Down:
-                    if (currentSnakeDirection != Direction.Down && currentSnakeDirection != Direction.Up)
+                    if (Direction != Direction.Down && Direction != Direction.Up)
                     {
-                        currentSnakeDirection = Direction.Down;
+                        Direction = Direction.Down;
                     }
                     break;
                 case Direction.Left:
-                    if (currentSnakeDirection != Direction.Left && currentSnakeDirection != Direction.Right)
+                    if (Direction != Direction.Left && Direction != Direction.Right)
                     {
-                        currentSnakeDirection = Direction.Left;
+                        Direction = Direction.Left;
                     }
                     break;
             }
+        }
+
+        public void IsPlayerGameOver()
+        {
+            throw new NotImplementedException();
         }
     }
 }
