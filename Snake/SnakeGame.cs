@@ -58,33 +58,26 @@ namespace GameOfMasterSnake.Snake
             PlaceFood();
             MoveSnake();
             DrawMap();
-            //CheckForDirectionChange();
 
             Thread.Sleep(10);
         }
 
         private void PlaceFood()
         {
-            if (IsFoodPlaced)
+            while (!IsFoodPlaced)
             {
-                return;
-            }
-            int yPos = RandomNumberGenerator.GetNextNumber(0, Map.Height - 1);
-            int xPos = RandomNumberGenerator.GetNextNumber(0, Map.Width - 1);
+                int yPos = RandomNumberGenerator.GetNextNumber(0, Map.Height - 1);
+                int xPos = RandomNumberGenerator.GetNextNumber(0, Map.Width - 1);
 
-            ITile tile = Map.GetTile(xPos, yPos);
-            if (tile.Value == TileValues.Empty)
-            {
-                // Food has a Tile-Value of -2. Should switch these Values to Enumerators at some point
-                tile.SetValue(TileValues.Food);
-                IsFoodPlaced = true;
+                ITile tile = Map.GetTile(xPos, yPos);
+                if (tile.Value == TileValues.Empty)
+                {
+                    tile.SetValue(TileValues.Food);
+                    IsFoodPlaced = true;
 
-                FoodXPos = xPos;
-                FoodYPos = yPos;
-            }
-            else
-            {
-                PlaceFood();
+                    FoodXPos = xPos;
+                    FoodYPos = yPos;
+                }
             }
         }
 
@@ -133,7 +126,7 @@ namespace GameOfMasterSnake.Snake
                 if (currentTile.SnakeLife > 0)
                 {
                     --currentTile.SnakeLife;
-                    if(currentTile.SnakeLife <= 0)
+                    if (currentTile.SnakeLife <= 0)
                     {
                         currentTile.SetValue(TileValues.Empty);
                     }
