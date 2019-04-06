@@ -12,44 +12,33 @@ namespace GameOfMasterSnake.Output
     {
         public void DrawMap(IGameMap map)
         {
-            if (map.Tiles == null || map.Tiles.Length == 0)
+            if (map.Tiles?.Length > 0)
             {
-                return;
-            }
-
-            Console.Clear();
-
-            int currentYPos = 0;
-            int currentXPos = 0;
-
-            for (int tileCounter = 0; tileCounter < map.Tiles.Length; ++tileCounter)
-            {
-                for (int i = 0; i < map.Tiles.Length; ++i)
+                foreach(ITile tile in map.Tiles)
                 {
-                    if (map.Tiles[i].YPos == currentYPos && map.Tiles[i].XPos == currentXPos)
+                    Console.CursorLeft = tile.XPos;
+                    Console.CursorTop = tile.YPos;
+
+                    if (tile.HasChanged)
                     {
-                        if (map.Tiles[i].Value == TileValues.Food)
+                        switch (tile.Value)
                         {
-                            Console.Write("F");
+                            case TileValues.Empty:
+                                Console.ForegroundColor = ConsoleColor.Gray;
+                                Console.Write("0");
+                                break;
+                            case TileValues.Food:
+                                Console.ForegroundColor = ConsoleColor.DarkRed;
+                                Console.Write("F");
+                                break;
+                            case TileValues.Snake:
+                                Console.ForegroundColor = ConsoleColor.DarkGreen;
+                                Console.Write("S");
+                                break;
                         }
-                        else if (map.Tiles[i].Value == TileValues.Empty)
-                        {
-                            Console.Write("0");
-                        }
-                        else
-                        {
-                            Console.Write("S");
-                        }
+                        Console.ResetColor();
 
-                        ++currentXPos;
-
-                        if (currentXPos >= map.Width)
-                        {
-                            Console.WriteLine();
-                            ++currentYPos;
-                            currentXPos = 0;
-                        }
-                        break;
+                        tile.HasChanged = false;
                     }
                 }
             }
