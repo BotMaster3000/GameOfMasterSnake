@@ -132,7 +132,7 @@ namespace GameOfMasterSnake
                 case Direction.Left:
                     for (int xPos = game.currentSnakeXPosition - 1; xPos >= 0; --xPos)
                     {
-                        if (game.map.GetTileValueAtCoordinates(game.currentSnakeYPosition, xPos) != 0)
+                        if (game.map.GetTile(xPos, game.currentSnakeYPosition).Value == TileValues.Snake)
                         {
                             value = game.currentSnakeXPosition - xPos;
                             value = value >= 0 ? value : -value;
@@ -148,7 +148,7 @@ namespace GameOfMasterSnake
                 case Direction.Up:
                     for (int yPos = game.currentSnakeYPosition - 1; yPos >= 0; --yPos)
                     {
-                        if (game.map.GetTileValueAtCoordinates(yPos, game.currentSnakeXPosition) != 0)
+                        if (game.map.GetTile(game.currentSnakeXPosition, yPos).Value == TileValues.Snake)
                         {
                             value = game.currentSnakeYPosition - yPos;
                             value = value >= 0 ? value : -value;
@@ -164,7 +164,7 @@ namespace GameOfMasterSnake
                 case Direction.Right:
                     for (int xPos = game.currentSnakeXPosition + 1; xPos >= 0; ++xPos)
                     {
-                        if (game.map.GetTileValueAtCoordinates(game.currentSnakeYPosition, xPos) != 0)
+                        if (game.map.GetTile(xPos, game.currentSnakeYPosition).Value == TileValues.Snake)
                         {
                             value = game.currentSnakeXPosition - xPos;
                             value = value >= 0 ? value : -value;
@@ -180,7 +180,7 @@ namespace GameOfMasterSnake
                 case Direction.Down:
                     for (int yPos = game.currentSnakeYPosition + 1; yPos >= 0; ++yPos)
                     {
-                        if (game.map.GetTileValueAtCoordinates(yPos, game.currentSnakeXPosition) != 0)
+                        if (game.map.GetTile(game.currentSnakeXPosition, yPos).Value == TileValues.Snake)
                         {
                             value = game.currentSnakeYPosition - yPos;
                             value = value >= 0 ? value : -value;

@@ -5,5 +5,6 @@
         Empty,
         Food,
         Snake,
+        None,
     }
 }

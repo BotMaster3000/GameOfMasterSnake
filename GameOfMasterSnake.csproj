@@ -51,7 +51,6 @@
     <Compile Include="Enums\TileValues.cs" />
     <Compile Include="Interfaces\IGameMap.cs" />
     <Compile Include="Interfaces\ITile.cs" />
-    <Compile Include="Map\OldGameMap.cs" />
     <Compile Include="Map\GameMap.cs" />
     <Compile Include="Map\Tile.cs" />
     <Compile Include="Program.cs" />

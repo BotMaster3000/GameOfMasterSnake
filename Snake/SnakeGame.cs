@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using GameOfMasterSnake.Enums;
+using GameOfMasterSnake.Interfaces;
 
 namespace GameOfMasterSnake.Snake
 {
@@ -12,7 +13,7 @@ namespace GameOfMasterSnake.Snake
     {
         private Random rand = new Random();
 
-        public readonly Map.OldGameMap map;
+        public readonly Interfaces.IGameMap map;
 
         public int currentSnakeLength;
         public Direction currentSnakeDirection = Direction.None;
@@ -29,7 +30,7 @@ namespace GameOfMasterSnake.Snake
 
         public SnakeGame(int height, int width, int initialSnakeLength)
         {
-            map = new Map.OldGameMap(height, width);
+            map = new Map.GameMap(height, width);
 
             currentSnakeLength = initialSnakeLength;
         }
@@ -69,17 +70,18 @@ namespace GameOfMasterSnake.Snake
             {
                 return;
             }
-            int yPos = rand.Next(0, map.height);
-            int xPos = rand.Next(0, map.width);
+            int yPos = rand.Next(0, map.Height);
+            int xPos = rand.Next(0, map.Width);
 
-            FoodXPosition = xPos;
-            FoodYPosition = yPos;
-
-            if (map.GetTileValueAtCoordinates(yPos, xPos) <= 0)
+            ITile tile = map.GetTile(xPos, yPos);
+            if (tile.Value == TileValues.Empty)
             {
                 // Food has a Tile-Value of -2. Should switch these Values to Enumerators at some point
-                map.SetTileValueAtCoordinates(yPos, xPos, -2);
+                tile.SetValue(TileValues.Food);
                 foodIsPlaced = true;
+
+                FoodXPosition = xPos;
+                FoodYPosition = yPos;
             }
             else
             {
@@ -126,11 +128,11 @@ namespace GameOfMasterSnake.Snake
         {
             // Decreases tileValue by one, if it is above 0
             // It is supposed to unset the tail of the snake, to simulate its movement
-            for (int i = 0; i < map.tiles.Length; ++i)
+            for (int i = 0; i < map.Tiles.Length; ++i)
             {
-                if (map.tiles[i].value > 0)
+                if (map.Tiles[i].SnakeLife > 0)
                 {
-                    --map.tiles[i].value;
+                    --map.Tiles[i].SnakeLife;
                 }
             }
 
@@ -157,15 +159,18 @@ namespace GameOfMasterSnake.Snake
             currentSnakeXPosition += xIncrement;
             currentSnakeYPosition += yIncrement;
 
+            ITile tile = map.GetTile(currentSnakeXPosition, currentSnakeYPosition);
+
             // It is being determined, if there is food, and if, the Snake-Length gets increased by one and
             // The food is no longer Placed, forcing a new Food-Tile next turn
-            if (map.GetTileValueAtCoordinates(currentSnakeYPosition, currentSnakeXPosition) == -2)
+            if (tile.Value == TileValues.Food)
             {
                 ++currentSnakeLength;
                 foodIsPlaced = false;
             }
 
-            map.SetTileValueAtCoordinates(currentSnakeYPosition, currentSnakeXPosition, currentSnakeLength);
+            tile.SetValue(TileValues.Snake);
+            tile.SnakeLife = currentSnakeLength;
 
             ++TotalMoves;
         }
@@ -181,28 +186,28 @@ namespace GameOfMasterSnake.Snake
             // If the Player is somewhere out of the map, he has lost
             if (
                 currentSnakeXPosition <= -1
-                || currentSnakeXPosition >= map.width
+                || currentSnakeXPosition >= map.Width
                 || currentSnakeYPosition <= -1
-                || currentSnakeYPosition >= map.height
+                || currentSnakeYPosition >= map.Height
                 )
             {
                 return true;
             }
 
-            int tileValue = 0;
+            TileValues tileValue = TileValues.None;
             switch (currentSnakeDirection)
             {
                 case Direction.Up:
-                    tileValue = map.GetTileValueAtCoordinates(currentSnakeYPosition - 1, currentSnakeXPosition);
+                    tileValue = map.GetTile(currentSnakeXPosition, currentSnakeYPosition - 1).Value;
                     break;
                 case Direction.Right:
-                    tileValue = map.GetTileValueAtCoordinates(currentSnakeYPosition, currentSnakeXPosition + 1);
+                    tileValue = map.GetTile(currentSnakeXPosition + 1, currentSnakeYPosition).Value;
                     break;
                 case Direction.Down:
-                    tileValue = map.GetTileValueAtCoordinates(currentSnakeYPosition + 1, currentSnakeXPosition);
+                    tileValue = map.GetTile(currentSnakeXPosition, currentSnakeYPosition + 1).Value;
                     break;
                 case Direction.Left:
-                    tileValue = map.GetTileValueAtCoordinates(currentSnakeYPosition, currentSnakeXPosition - 1);
+                    tileValue = map.GetTile(currentSnakeXPosition - 1, currentSnakeYPosition).Value;
                     break;
                 default:
                     // If Direction is Null, there has to be an error, so game over.
@@ -210,17 +215,12 @@ namespace GameOfMasterSnake.Snake
             }
 
             // If the Tile could not be found for some reason or if there is still a piece of Snake, the player has lost
-            if (tileValue == -1 || tileValue > 0)
-            {
-                return true;
-            }
-
-            return false;
+            return tileValue == TileValues.None || tileValue == TileValues.Snake;
         }
 
         private void DrawMap()
         {
-            if (map.tiles == null || map.tiles.Length == 0)
+            if (map.Tiles == null || map.Tiles.Length == 0)
             {
                 return;
             }
@@ -230,20 +230,20 @@ namespace GameOfMasterSnake.Snake
             int currentYPos = 0;
             int currentXPos = 0;
 
-            for (int tileCounter = 0; tileCounter < map.tiles.Length; ++tileCounter)
+            for (int tileCounter = 0; tileCounter < map.Tiles.Length; ++tileCounter)
             {
-                for (int i = 0; i < map.tiles.Length; ++i)
+                for (int i = 0; i < map.Tiles.Length; ++i)
                 {
-                    if (map.tiles[i].YPos == currentYPos && map.tiles[i].XPos == currentXPos)
+                    if (map.Tiles[i].YPos == currentYPos && map.Tiles[i].XPos == currentXPos)
                     {
                         //Console.Write(map.tiles[i].value);
-                        if (map.tiles[i].value == -2)
+                        if (map.Tiles[i].Value == TileValues.Food)
                         {
                             Console.Write("F");
                         }
-                        else if (map.tiles[i].value <= 0)
+                        else if (map.Tiles[i].Value == TileValues.Empty)
                         {
-                            Console.Write(map.tiles[i].value);
+                            Console.Write(TileValues.Empty);
                         }
                         else
                         {
@@ -252,7 +252,7 @@ namespace GameOfMasterSnake.Snake
 
                         ++currentXPos;
 
-                        if (currentXPos >= map.width)
+                        if (currentXPos >= map.Width)
                         {
                             Console.WriteLine();
                             ++currentYPos;
@@ -266,8 +266,8 @@ namespace GameOfMasterSnake.Snake
 
         public void PlaceSnakeOnMap()
         {
-            int yPos = rand.Next(0, map.height);
-            int xPos = rand.Next(0, map.width);
+            int yPos = rand.Next(0, map.Height);
+            int xPos = rand.Next(0, map.Width);
 
             currentSnakeYPosition = yPos;
             currentSnakeXPosition = xPos;
@@ -288,12 +288,12 @@ namespace GameOfMasterSnake.Snake
                     break;
             }
 
-            for (int i = 0; i < map.tiles.Length; ++i)
+            for (int i = 0; i < map.Tiles.Length; ++i)
             {
-                if (map.tiles[i].YPos == yPos && map.tiles[i].XPos == xPos)
+                if (map.Tiles[i].YPos == yPos && map.Tiles[i].XPos == xPos)
                 {
-                    map.tiles[i].value = currentSnakeLength;
-
+                    map.Tiles[i].SnakeLife = currentSnakeLength;
+                    map.Tiles[i].SetValue(TileValues.Snake);
                     break;
                 }
             }
