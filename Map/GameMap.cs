@@ -18,7 +18,6 @@ namespace GameOfMasterSnake.Map
         {
             Width = width;
             Height = height;
-
             InitializeGameMap();
         }
 
@@ -40,8 +39,9 @@ namespace GameOfMasterSnake.Map
             {
                 for (int yPos = 0; yPos < Height; ++yPos)
                 {
-                    Tiles[counter] = new Tile(xPos, yPos);
-                    Tiles[counter].SetValue(TileValues.Empty);
+                    ITile tile = new Tile(xPos, yPos);
+                    tile.SetValue(TileValues.Empty);
+                    Tiles[counter] = tile;
                     ++counter;
                 }
             }
@@ -49,7 +49,6 @@ namespace GameOfMasterSnake.Map
 
         public ITile GetTile(int xPos, int yPos)
         {
-            return Tiles.FirstOrDefault(x => x.XPos == xPos && x.YPos == yPos);
             return Array.Find(Tiles, x => x.XPos == xPos && x.YPos == yPos);
         }
 
