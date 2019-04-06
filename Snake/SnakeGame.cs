@@ -120,6 +120,33 @@ namespace GameOfMasterSnake.Snake
         {
             // Decreases tileValue by one, if it is above 0
             // It is supposed to unset the tail of the snake, to simulate its movement
+            DecreaseSnakeLife();
+
+            // The new Snailpiece is being placed, valued the length of the snail, to simulate its length
+            int xIncrement = 0;
+            int yIncrement = 0;
+            GetIncremention(ref xIncrement, ref yIncrement);
+
+            SnakeXPos += xIncrement;
+            SnakeYPos += yIncrement;
+
+            ITile tile = Map.GetTile(SnakeXPos, SnakeYPos);
+            if (tile != null)
+            {
+                if (TileContainsFood(tile))
+                {
+                    EatFood(tile);
+                }
+
+                tile.SetValue(TileValues.Snake);
+                tile.SnakeLife = SnakeLength;
+            }
+
+            ++TotalMoves;
+        }
+
+        private void DecreaseSnakeLife()
+        {
             for (int i = 0; i < Map.Tiles.Length; ++i)
             {
                 ITile currentTile = Map.Tiles[i];
@@ -132,11 +159,10 @@ namespace GameOfMasterSnake.Snake
                     }
                 }
             }
+        }
 
-            // The new Snailpiece is being placed, valued the length of the snail, to simulate its length
-
-            int xIncrement = 0;
-            int yIncrement = 0;
+        private void GetIncremention(ref int xIncrement, ref int yIncrement)
+        {
             switch (Direction)
             {
                 case Direction.Up:
@@ -152,26 +178,18 @@ namespace GameOfMasterSnake.Snake
                     xIncrement = -1;
                     break;
             }
+        }
 
-            SnakeXPos += xIncrement;
-            SnakeYPos += yIncrement;
+        private bool TileContainsFood(ITile tile)
+        {
+            return tile.Value == TileValues.Food;
+        }
 
-            ITile tile = Map.GetTile(SnakeXPos, SnakeYPos);
-            if (tile != null)
-            {
-                // It is being determined, if there is food, and if, the Snake-Length gets increased by one and
-                // The food is no longer Placed, forcing a new Food-Tile next turn
-                if (tile.Value == TileValues.Food)
-                {
-                    ++SnakeLength;
-                    IsFoodPlaced = false;
-                }
-
-                tile.SetValue(TileValues.Snake);
-                tile.SnakeLife = SnakeLength;
-            }
-
-            ++TotalMoves;
+        private void EatFood(ITile tile)
+        {
+            ++SnakeLength;
+            tile.SetValue(TileValues.Empty);
+            IsFoodPlaced = false;
         }
 
         /// <summary>
