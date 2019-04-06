@@ -200,39 +200,37 @@ namespace GameOfMasterSnake.Snake
         /// <returns></returns>
         public bool PlayerGameOver()
         {
-            // If the Player is somewhere out of the map, he has lost
-            if (
-                SnakeXPos <= -1
+            if (!IsPlayerOutOfBound())
+            {
+                TileValues tileValue = GetNextTileValue();
+                return tileValue == TileValues.None || tileValue == TileValues.Snake;
+            }
+            return true;
+        }
+
+        private bool IsPlayerOutOfBound()
+        {
+            return SnakeXPos <= -1
                 || SnakeXPos >= Map.Width
                 || SnakeYPos <= -1
-                || SnakeYPos >= Map.Height
-                )
-            {
-                return true;
-            }
+                || SnakeYPos >= Map.Height;
+        }
 
-            TileValues tileValue = TileValues.None;
+        private TileValues GetNextTileValue()
+        {
             switch (Direction)
             {
                 case Direction.Up:
-                    tileValue = Map.GetTile(SnakeXPos, SnakeYPos - 1)?.Value ?? TileValues.None;
-                    break;
+                    return Map.GetTile(SnakeXPos, SnakeYPos - 1)?.Value ?? TileValues.None;
                 case Direction.Right:
-                    tileValue = Map.GetTile(SnakeXPos + 1, SnakeYPos)?.Value ?? TileValues.None;
-                    break;
+                    return Map.GetTile(SnakeXPos + 1, SnakeYPos)?.Value ?? TileValues.None;
                 case Direction.Down:
-                    tileValue = Map.GetTile(SnakeXPos, SnakeYPos + 1)?.Value ?? TileValues.None;
-                    break;
+                    return Map.GetTile(SnakeXPos, SnakeYPos + 1)?.Value ?? TileValues.None;
                 case Direction.Left:
-                    tileValue = Map.GetTile(SnakeXPos - 1, SnakeYPos)?.Value ?? TileValues.None;
-                    break;
+                    return Map.GetTile(SnakeXPos - 1, SnakeYPos)?.Value ?? TileValues.None;
                 default:
-                    // If Direction is Null, there has to be an error, so game over.
-                    return true;
+                    return TileValues.None;
             }
-
-            // If the Tile could not be found for some reason or if there is still a piece of Snake, the player has lost
-            return tileValue == TileValues.None || tileValue == TileValues.Snake;
         }
 
         private void DrawMap()
