@@ -59,7 +59,7 @@ namespace GameOfMasterSnake.Snake
             MoveSnake();
             DrawMap();
 
-            Thread.Sleep(10);
+            Thread.Sleep(100);
         }
 
         private void PlaceFood()

@@ -10,12 +10,12 @@ using NeuralBotMasterFramework.Logic.Algorithms;
 
 namespace GameOfMasterSnake
 {
-    class Program
+    internal static class Program
     {
         private const int TOTAL_NETWORKS = 100;
         private const int INPUT_NODES = 9;
         private const int HIDDEN_NODS = 10;
-        private const int HIDDEN_LAYERS = 5;
+        private const int HIDDEN_LAYERS = 2;
         private const int OUTPUT_NODES = 1;
 
         private static readonly GeneticAlgorithm algorithm = new GeneticAlgorithm(TOTAL_NETWORKS, INPUT_NODES, HIDDEN_NODS, HIDDEN_LAYERS, OUTPUT_NODES);
@@ -33,6 +33,7 @@ namespace GameOfMasterSnake
             algorithm.NetworksToKeep = NETWORKS_TO_KEEP;
             algorithm.MutationChance = MUTATION_CHANCE;
             algorithm.MutationRate = MUTATION_RATE;
+            const int FORCE_BREAK_AFTER_ITERATIONS = 50;
 
             int generation = 0;
             while (true)
@@ -53,7 +54,6 @@ namespace GameOfMasterSnake
 
                     int iterationsSinceLastFood = 0;
                     int previousSnakeLength = currentSnakeGame.SnakeLength;
-                    const int FORCE_BREAK_AFTER_ITERATIONS = 100;
 
                     while (!currentSnakeGame.IsPlayerGameOver())
                     {
@@ -78,7 +78,7 @@ namespace GameOfMasterSnake
                             break;
                         }
                     }
-                    algorithm.SetFitness(currentNetwork, currentSnakeGame.SnakeLength * currentSnakeGame.TotalMoves);
+                    algorithm.SetFitness(currentNetwork, currentSnakeGame.SnakeLength /** currentSnakeGame.TotalMoves*/);
                 }
                 algorithm.SortByFitness();
                 double[] fitnesses = algorithm.GetFitnesses();
@@ -118,8 +118,8 @@ namespace GameOfMasterSnake
                 nextObstacleUpDistance,
                 nextObstacleDownDistance,
                 nextObstacleRightDistance,
-                game.FoodXPos,
-                game.FoodYPos,
+                game.SnakeXPos - game.FoodXPos,
+                game.SnakeYPos - game.FoodYPos,
             };
         }
 
