@@ -246,28 +246,15 @@ namespace GameOfMasterSnake.Snake
             SnakeYPos = yPos;
             SnakeXPos = xPos;
 
-            switch (RandomNumberGenerator.GetNextNumber(0, 3))
-            {
-                case 0:
-                    Direction = Direction.Up;
-                    break;
-                case 1:
-                    Direction = Direction.Right;
-                    break;
-                case 2:
-                    Direction = Direction.Down;
-                    break;
-                case 3:
-                    Direction = Direction.Left;
-                    break;
-            }
+            Direction = (Direction)RandomNumberGenerator.GetNextNumber(0, 3);
 
             for (int i = 0; i < Map.Tiles.Length; ++i)
             {
-                if (Map.Tiles[i].YPos == yPos && Map.Tiles[i].XPos == xPos)
+                ITile tile = Map.Tiles[i];
+                if (tile.YPos == yPos && tile.XPos == xPos)
                 {
-                    Map.Tiles[i].SnakeLife = SnakeLength;
-                    Map.Tiles[i].SetValue(TileValues.Snake);
+                    tile.SnakeLife = SnakeLength;
+                    tile.SetValue(TileValues.Snake);
                     break;
                 }
             }
