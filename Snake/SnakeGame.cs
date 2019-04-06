@@ -43,7 +43,7 @@ namespace GameOfMasterSnake.Snake
             DrawMap();
             Thread.Sleep(1000);
 
-            while (!PlayerGameOver())
+            while (!IsPlayerGameOver())
             {
                 MoveSnake();
                 DrawMap();
@@ -198,7 +198,7 @@ namespace GameOfMasterSnake.Snake
         /// oder wenn man in sich selbst "kriecht"
         /// </summary>
         /// <returns></returns>
-        public bool PlayerGameOver()
+        public bool IsPlayerGameOver()
         {
             if (!IsPlayerOutOfBound())
             {
@@ -302,11 +302,6 @@ namespace GameOfMasterSnake.Snake
                     }
                     break;
             }
-        }
-
-        public void IsPlayerGameOver()
-        {
-            throw new NotImplementedException();
         }
     }
 }

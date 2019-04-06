@@ -57,7 +57,7 @@ namespace GameOfMasterSnake
                     const int FORCE_BREAK_AFTER_ITERATIONS = 100;
 
 
-                    while (!currentSnakeGame.PlayerGameOver())
+                    while (!currentSnakeGame.IsPlayerGameOver())
                     {
                         double[] input = GetNetworkInput(currentSnakeGame);
                         currentNetwork.SetInput(input);
