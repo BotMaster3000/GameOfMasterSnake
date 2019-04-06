@@ -6,19 +6,18 @@ using System.Threading;
 using System.Threading.Tasks;
 using GameOfMasterSnake.Enums;
 using GameOfMasterSnake.Interfaces;
+using NeuralBotMasterFramework.Helper;
 
 namespace GameOfMasterSnake.Snake
 {
     public class SnakeGame
     {
-        private Random rand = new Random();
-
-        public readonly Interfaces.IGameMap map;
+        public readonly IGameMap map;
 
         public int currentSnakeLength;
         public Direction currentSnakeDirection = Direction.None;
 
-        public int TotalMoves = 0;
+        public int TotalMoves;
 
         public int currentSnakeXPosition = -1;
         public int currentSnakeYPosition = -1;
@@ -70,8 +69,8 @@ namespace GameOfMasterSnake.Snake
             {
                 return;
             }
-            int yPos = rand.Next(0, map.Height);
-            int xPos = rand.Next(0, map.Width);
+            int yPos = RandomNumberGenerator.GetNextNumber(0, map.Height - 1);
+            int xPos = RandomNumberGenerator.GetNextNumber(0, map.Width - 1);
 
             ITile tile = map.GetTile(xPos, yPos);
             if (tile.Value == TileValues.Empty)
@@ -266,13 +265,13 @@ namespace GameOfMasterSnake.Snake
 
         public void PlaceSnakeOnMap()
         {
-            int yPos = rand.Next(0, map.Height);
-            int xPos = rand.Next(0, map.Width);
+            int yPos = RandomNumberGenerator.GetNextNumber(0, map.Height - 1);
+            int xPos = RandomNumberGenerator.GetNextNumber(0, map.Width - 1);
 
             currentSnakeYPosition = yPos;
             currentSnakeXPosition = xPos;
 
-            switch (rand.Next(0, 4))
+            switch (RandomNumberGenerator.GetNextNumber(0, 3))
             {
                 case 0:
                     currentSnakeDirection = Direction.Up;
