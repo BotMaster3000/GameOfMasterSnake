@@ -24,7 +24,7 @@ namespace GameOfMasterSnake.Interfaces
         int TotalMoves { get; }
 
         void NextRound();
-        void IsPlayerGameOver();
+        bool IsPlayerGameOver();
         void PlaceSnakeOnMap();
         void SetSnakeDirection(Direction direction);
     }
