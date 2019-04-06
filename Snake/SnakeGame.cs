@@ -260,35 +260,15 @@ namespace GameOfMasterSnake.Snake
             }
         }
 
-        public void SetSnakeDirection(Direction direction)
+        public void SetSnakeDirection(Direction newDirection)
         {
-            switch (direction)
-            {
-                case Direction.Up:
-                    if (Direction != Direction.Up && Direction != Direction.Down)
-                    {
-                        Direction = Direction.Up;
-                    }
-                    break;
-                case Direction.Right:
-                    if (Direction != Direction.Right && Direction != Direction.Left)
-                    {
-                        Direction = Direction.Right;
-                    }
-                    break;
-                case Direction.Down:
-                    if (Direction != Direction.Down && Direction != Direction.Up)
-                    {
-                        Direction = Direction.Down;
-                    }
-                    break;
-                case Direction.Left:
-                    if (Direction != Direction.Left && Direction != Direction.Right)
-                    {
-                        Direction = Direction.Left;
-                    }
-                    break;
-            }
+            int directionFactor = newDirection - Direction;
+            directionFactor = directionFactor <= 0
+                ? -directionFactor
+                : directionFactor;
+            Direction = directionFactor == 1
+                ? newDirection
+                : Direction;
         }
     }
 }
