@@ -58,8 +58,6 @@ namespace GameOfMasterSnake.Snake
             PlaceFood();
             MoveSnake();
             DrawMap();
-
-            Thread.Sleep(100);
         }
 
         private void PlaceFood()
@@ -235,7 +233,7 @@ namespace GameOfMasterSnake.Snake
 
         private void DrawMap()
         {
-            Printer.DrawMap(Map);
+            Printer.PrintMap(Map);
         }
 
         public void PlaceSnakeOnMap()

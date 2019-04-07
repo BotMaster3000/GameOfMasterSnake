@@ -10,9 +10,11 @@ namespace GameOfMasterSnake.Output
 {
     public class ConsolePrinter : IMapPrinter
     {
-        public void DrawMap(IGameMap map)
+        public bool IsPrintingMap { get; set; } = true;
+
+        public void PrintMap(IGameMap map)
         {
-            if (map.Tiles?.Length > 0)
+            if (IsPrintingMap && map.Tiles?.Length > 0)
             {
                 foreach(ITile tile in map.Tiles)
                 {

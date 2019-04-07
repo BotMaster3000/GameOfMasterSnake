@@ -8,6 +8,7 @@ namespace GameOfMasterSnake.Interfaces
 {
     public interface IMapPrinter
     {
-        void DrawMap(IGameMap map);
+        bool IsPrintingMap { get; set; }
+        void PrintMap(IGameMap map);
     }
 }

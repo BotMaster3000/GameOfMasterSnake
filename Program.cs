@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using GameOfMasterSnake.Enums;
 using GameOfMasterSnake.Snake;
@@ -12,11 +13,14 @@ namespace GameOfMasterSnake
 {
     internal static class Program
     {
-        private const int TOTAL_NETWORKS = 100;
+        private const int TOTAL_NETWORKS = 10000;
+        private const int NETWORKS_TO_KEEP = 100;
         private const int INPUT_NODES = 9;
         private const int HIDDEN_NODS = 10;
         private const int HIDDEN_LAYERS = 2;
         private const int OUTPUT_NODES = 1;
+        private const double MUTATION_CHANCE = 0.5;
+        private const double MUTATION_RATE = 0.1;
 
         private static readonly GeneticAlgorithm algorithm = new GeneticAlgorithm(TOTAL_NETWORKS, INPUT_NODES, HIDDEN_NODS, HIDDEN_LAYERS, OUTPUT_NODES);
 
@@ -24,15 +28,15 @@ namespace GameOfMasterSnake
         private const int WIDTH_GAME = 10;
         private const int INITIAL_SNAKE_LENGTH = 5;
 
+        private const bool IS_PRINTING_MAP = false;
+        private const int NEXT_ROUND_DELAY = 0;
+
         private static void Main()
         {
-            const int NETWORKS_TO_KEEP = 10;
-            const double MUTATION_CHANCE = 0.10;
-            const double MUTATION_RATE = 0.10;
-
             algorithm.NetworksToKeep = NETWORKS_TO_KEEP;
             algorithm.MutationChance = MUTATION_CHANCE;
             algorithm.MutationRate = MUTATION_RATE;
+
             const int FORCE_BREAK_AFTER_ITERATIONS = 50;
 
             int generation = 0;
@@ -66,6 +70,10 @@ namespace GameOfMasterSnake
                             Enum.TryParse(
                                 (Math.Round(output[0], 0) % 4).ToString(), out Direction result) ? result : Direction.None);
                         currentSnakeGame.NextRound();
+                        if (NEXT_ROUND_DELAY > 0)
+                        {
+                            Thread.Sleep(NEXT_ROUND_DELAY);
+                        }
 
                         ++iterationsSinceLastFood;
                         if (currentSnakeGame.SnakeLength > previousSnakeLength)
@@ -78,7 +86,7 @@ namespace GameOfMasterSnake
                             break;
                         }
                     }
-                    algorithm.SetFitness(currentNetwork, currentSnakeGame.SnakeLength /** currentSnakeGame.TotalMoves*/);
+                    algorithm.SetFitness(currentNetwork, currentSnakeGame.SnakeLength * currentSnakeGame.TotalMoves);
                 }
                 algorithm.SortByFitness();
                 double[] fitnesses = algorithm.GetFitnesses();
@@ -97,7 +105,9 @@ namespace GameOfMasterSnake
             Dictionary<IWeightedNetwork, SnakeGame> networkAndSnakeGame = new Dictionary<IWeightedNetwork, SnakeGame>();
             for (int i = 0; i < algorithm.NetworksAndFitness.Count; ++i)
             {
-                networkAndSnakeGame.Add(algorithm.NetworksAndFitness.Keys.ElementAt(i), new SnakeGame(HEIGHTS_GAME, WIDTH_GAME, INITIAL_SNAKE_LENGTH));
+                SnakeGame game = new SnakeGame(HEIGHTS_GAME, WIDTH_GAME, INITIAL_SNAKE_LENGTH);
+                game.Printer.IsPrintingMap = IS_PRINTING_MAP;
+                networkAndSnakeGame.Add(algorithm.NetworksAndFitness.Keys.ElementAt(i), game);
             }
             return networkAndSnakeGame;
         }
@@ -174,7 +184,7 @@ namespace GameOfMasterSnake
                     }
                     if (!tileFound)
                     {
-                        value = game.SnakeXPos;
+                        value = game.Map.Width - 1 - game.SnakeXPos;
                     }
                     break;
                 case Direction.Down:
@@ -190,7 +200,7 @@ namespace GameOfMasterSnake
                     }
                     if (!tileFound)
                     {
-                        value = game.SnakeYPos;
+                        value = game.Map.Height - 1 - game.SnakeYPos;
                     }
                     break;
             }
