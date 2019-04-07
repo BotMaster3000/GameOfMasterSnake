@@ -49,6 +49,7 @@
   <ItemGroup>
     <Compile Include="Enums\Direction.cs" />
     <Compile Include="Enums\TileValues.cs" />
+    <Compile Include="Interfaces\ISimulationHandler.cs" />
     <Compile Include="Interfaces\IGameMap.cs" />
     <Compile Include="Interfaces\IMapPrinter.cs" />
     <Compile Include="Interfaces\ISnakeGame.cs" />
@@ -58,6 +59,7 @@
     <Compile Include="Output\ConsolePrinter.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Simulations\SimulationHandler.cs" />
     <Compile Include="Snake\SnakeGame.cs" />
   </ItemGroup>
   <ItemGroup>
