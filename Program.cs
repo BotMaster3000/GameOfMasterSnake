@@ -8,6 +8,7 @@ using GameOfMasterSnake.Enums;
 using GameOfMasterSnake.Snake;
 using NeuralBotMasterFramework.Interfaces;
 using NeuralBotMasterFramework.Logic.Algorithms;
+using NeuralBotMasterFramework.Logic.PoolGenerators;
 
 namespace GameOfMasterSnake
 {
@@ -15,12 +16,13 @@ namespace GameOfMasterSnake
     {
         private const int TOTAL_NETWORKS = 10000;
         private const int NETWORKS_TO_KEEP = 100;
+        private const int RANDOM_NETWORKS_PER_BREEDING = 100;
         private const int INPUT_NODES = 9;
         private const int HIDDEN_NODS = 10;
         private const int HIDDEN_LAYERS = 2;
         private const int OUTPUT_NODES = 1;
         private const double MUTATION_CHANCE = 0.5;
-        private const double MUTATION_RATE = 0.1;
+        private const double MUTATION_RATE = 0.001;
 
         private static readonly GeneticAlgorithm algorithm = new GeneticAlgorithm(TOTAL_NETWORKS, INPUT_NODES, HIDDEN_NODS, HIDDEN_LAYERS, OUTPUT_NODES);
 
@@ -36,6 +38,8 @@ namespace GameOfMasterSnake
             algorithm.NetworksToKeep = NETWORKS_TO_KEEP;
             algorithm.MutationChance = MUTATION_CHANCE;
             algorithm.MutationRate = MUTATION_RATE;
+            algorithm.RandomNetworkAmount = RANDOM_NETWORKS_PER_BREEDING;
+            algorithm.PoolGenerator = new FitnessBasedPoolGenerator();
 
             const int FORCE_BREAK_AFTER_ITERATIONS = 50;
 
