@@ -97,7 +97,7 @@ namespace GameOfMasterSnake
                 for (int i = 0; i < 10; ++i)
                 {
                     Console.SetCursorPosition(15, 7 + i);
-                    Console.Write($"{i + 1}: {fitnesses[i].ToString().PadLeft(15)}");
+                    Console.Write($"{i + 1}: {fitnesses[i].ToString().PadLeft(15)} ID: {algorithm.NetworksAndFitness.Where(x => x.Value == fitnesses[i]).Select(x => x.Key.ID).First()}");
                 }
                 algorithm.BreedBestNetworks();
                 ++generation;
@@ -111,7 +111,7 @@ namespace GameOfMasterSnake
             {
                 SnakeGame game = new SnakeGame(HEIGHTS_GAME, WIDTH_GAME, INITIAL_SNAKE_LENGTH);
                 game.Printer.IsPrintingMap = IS_PRINTING_MAP;
-                networkAndSnakeGame.Add(algorithm.NetworksAndFitness.Keys.ElementAt(i), game);
+                networkAndSnakeGame.Add(algorithm.NetworksAndFitness.Select(x => x.Key).ElementAt(i), game);
             }
             return networkAndSnakeGame;
         }

@@ -38,7 +38,7 @@ namespace GameOfMasterSnake.Simulations
             AlgorithmAndSimulationType.Clear();
             for (int i = 0; i < Algorithm.TotalNetworks; ++i)
             {
-                IWeightedNetwork network = Algorithm.NetworksAndFitness.Keys.ElementAt(i);
+                IWeightedNetwork network = Algorithm.NetworksAndFitness.Select(x => x.Key).ElementAt(i);
                 //AlgorithmAndSimulationType.Add(network, SimulationType.());
             }
             throw new NotImplementedException();
