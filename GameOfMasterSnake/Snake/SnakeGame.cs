@@ -37,17 +37,22 @@ namespace GameOfMasterSnake.Snake
             this.width = width;
             this.initialSnakeLength = initialSnakeLength;
             InitializeGame();
+            Printer = new Output.ConsolePrinter();
         }
 
         public void InitializeGame()
         {
             Map = new Map.GameMap(height, width);
-            Printer = new Output.ConsolePrinter();
 
             SnakeLength = initialSnakeLength;
 
             SnakeXPos = -1;
             SnakeYPos = -1;
+
+            FoodXPos = -1;
+            FoodYPos = -1;
+            IsFoodPlaced = false;
+            TotalMoves = 0;
         }
 
         public void BeginGame()

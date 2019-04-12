@@ -30,8 +30,8 @@ namespace GameOfMasterSnake
         private const int WIDTH_GAME = 10;
         private const int INITIAL_SNAKE_LENGTH = 5;
 
-        private const bool IS_PRINTING_MAP = false;
-        private const int NEXT_ROUND_DELAY = 0;
+        private const bool IS_PRINTING_MAP = true;
+        private const int NEXT_ROUND_DELAY = 100;
 
         private static void Main()
         {

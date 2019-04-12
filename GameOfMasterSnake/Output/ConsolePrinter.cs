@@ -16,13 +16,12 @@ namespace GameOfMasterSnake.Output
         {
             if (IsPrintingMap && map.Tiles?.Length > 0)
             {
-                foreach(ITile tile in map.Tiles)
+                foreach (ITile tile in map.Tiles)
                 {
-                    Console.CursorLeft = tile.XPos;
-                    Console.CursorTop = tile.YPos;
-
                     if (tile.HasChanged)
                     {
+                        Console.CursorLeft = tile.XPos;
+                        Console.CursorTop = tile.YPos;
                         switch (tile.Value)
                         {
                             case TileValues.Empty:
