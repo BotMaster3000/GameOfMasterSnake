@@ -55,11 +55,11 @@ namespace GameOfMasterSnake.Simulations.Tests
             Assert.AreEqual(SimulationType, handler.SimulationType);
         }
 
-        [TestMethod]
-        public void InitializeSimulationTest()
-        {
-            ISimulationHandler handler = new SimulationHandler(Algorithm, SimulationType);
-            handler.InitializeSimulation();
-        }
+        //[TestMethod]
+        //public void InitializeSimulationTest()
+        //{
+        //    ISimulationHandler handler = new SimulationHandler(Algorithm, SimulationType);
+        //    handler.InitializeSimulation();
+        //}
     }
 }

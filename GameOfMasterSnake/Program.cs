@@ -58,39 +58,46 @@ namespace GameOfMasterSnake
                     SnakeGame currentSnakeGame = networkAndGame.Value;
                     IWeightedNetwork currentNetwork = networkAndGame.Key;
 
-                    currentSnakeGame.PlaceSnakeOnMap();
-
-                    int iterationsSinceLastFood = 0;
-                    int previousSnakeLength = currentSnakeGame.SnakeLength;
-
-                    while (!currentSnakeGame.IsPlayerGameOver())
+                    double totalFitness = 0.0;
+                    const int TOTAL_PLAYS_PER_NETWORK = 5;
+                    for (int i = 0; i < TOTAL_PLAYS_PER_NETWORK; ++i)
                     {
-                        double[] input = GetNetworkInput(currentSnakeGame);
-                        currentNetwork.SetInput(input);
-                        currentNetwork.Propagate();
-                        double[] output = currentNetwork.GetOutput();
+                        currentSnakeGame.PlaceSnakeOnMap();
 
-                        currentSnakeGame.SetSnakeDirection(
-                            Enum.TryParse(
-                                (Math.Round(output[0], 0) % 4).ToString(), out Direction result) ? result : Direction.None);
-                        currentSnakeGame.NextRound();
-                        if (NEXT_ROUND_DELAY > 0)
+                        int iterationsSinceLastFood = 0;
+                        int previousSnakeLength = currentSnakeGame.SnakeLength;
+                        while (!currentSnakeGame.IsPlayerGameOver())
                         {
-                            Thread.Sleep(NEXT_ROUND_DELAY);
-                        }
+                            double[] input = GetNetworkInput(currentSnakeGame);
+                            currentNetwork.SetInput(input);
+                            currentNetwork.Propagate();
+                            double[] output = currentNetwork.GetOutput();
 
-                        ++iterationsSinceLastFood;
-                        if (currentSnakeGame.SnakeLength > previousSnakeLength)
-                        {
-                            iterationsSinceLastFood = 0;
-                            previousSnakeLength = currentSnakeGame.SnakeLength;
+                            currentSnakeGame.SetSnakeDirection(
+                                Enum.TryParse((Math.Round(output[0], 0) % 4).ToString(), out Direction result)
+                                ? result
+                                : Direction.None);
+                            currentSnakeGame.NextRound();
+                            if (NEXT_ROUND_DELAY > 0)
+                            {
+                                Thread.Sleep(NEXT_ROUND_DELAY);
+                            }
+
+                            ++iterationsSinceLastFood;
+                            if (currentSnakeGame.SnakeLength > previousSnakeLength)
+                            {
+                                iterationsSinceLastFood = 0;
+                                previousSnakeLength = currentSnakeGame.SnakeLength;
+                            }
+                            if (iterationsSinceLastFood >= FORCE_BREAK_AFTER_ITERATIONS)
+                            {
+                                break;
+                            }
                         }
-                        if (iterationsSinceLastFood >= FORCE_BREAK_AFTER_ITERATIONS)
-                        {
-                            break;
-                        }
+                        totalFitness += currentSnakeGame.SnakeLength * currentSnakeGame.TotalMoves;
                     }
-                    algorithm.SetFitness(currentNetwork, currentSnakeGame.SnakeLength * currentSnakeGame.TotalMoves);
+                    algorithm.SetFitness(currentNetwork, totalFitness);
+                    networkAndGame.Value.InitializeGame();
                 }
                 algorithm.SortByFitness();
                 double[] fitnesses = algorithm.GetFitnesses();

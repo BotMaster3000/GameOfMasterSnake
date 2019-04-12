@@ -12,8 +12,8 @@ namespace GameOfMasterSnake.Snake
 {
     public class SnakeGame : ISnakeGame
     {
-        public IGameMap Map { get; }
-        public IMapPrinter Printer { get; }
+        public IGameMap Map { get; private set; }
+        public IMapPrinter Printer { get; private set; }
 
         public int SnakeXPos { get; private set; } = -1;
         public int SnakeYPos { get; private set; } = -1;
@@ -27,12 +27,27 @@ namespace GameOfMasterSnake.Snake
 
         public int TotalMoves { get; private set; }
 
+        private readonly int height;
+        private readonly int width;
+        private readonly int initialSnakeLength;
+
         public SnakeGame(int height, int width, int initialSnakeLength)
+        {
+            this.height = height;
+            this.width = width;
+            this.initialSnakeLength = initialSnakeLength;
+            InitializeGame();
+        }
+
+        public void InitializeGame()
         {
             Map = new Map.GameMap(height, width);
             Printer = new Output.ConsolePrinter();
 
             SnakeLength = initialSnakeLength;
+
+            SnakeXPos = -1;
+            SnakeYPos = -1;
         }
 
         public void BeginGame()
