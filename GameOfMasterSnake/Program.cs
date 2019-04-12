@@ -14,14 +14,14 @@ namespace GameOfMasterSnake
 {
     internal static class Program
     {
-        private const int TOTAL_NETWORKS = 10000;
-        private const int NETWORKS_TO_KEEP = 100;
+        private const int TOTAL_NETWORKS = 1000;
+        private const int NETWORKS_TO_KEEP = 10;
         private const int RANDOM_NETWORKS_PER_BREEDING = 100;
         private const int INPUT_NODES = 9;
-        private const int HIDDEN_NODS = 10;
+        private const int HIDDEN_NODS = 6;
         private const int HIDDEN_LAYERS = 2;
         private const int OUTPUT_NODES = 1;
-        private const double MUTATION_CHANCE = 0.5;
+        private const double MUTATION_CHANCE = 0.1;
         private const double MUTATION_RATE = 0.001;
 
         private static readonly GeneticAlgorithm algorithm = new GeneticAlgorithm(TOTAL_NETWORKS, INPUT_NODES, HIDDEN_NODS, HIDDEN_LAYERS, OUTPUT_NODES);
@@ -30,8 +30,8 @@ namespace GameOfMasterSnake
         private const int WIDTH_GAME = 10;
         private const int INITIAL_SNAKE_LENGTH = 5;
 
-        private const bool IS_PRINTING_MAP = true;
-        private const int NEXT_ROUND_DELAY = 100;
+        private static bool isPrintingMap = false;
+        private static int nextRoundDelay = 0;
 
         private static void Main()
         {
@@ -46,12 +46,23 @@ namespace GameOfMasterSnake
             int generation = 0;
             while (true)
             {
+                if (generation % 100 == 0)
+                {
+                    isPrintingMap = true;
+                    nextRoundDelay = 100;
+                }
                 Console.SetCursorPosition(15, 5);
                 Console.Write($"Generation: {generation}");
                 Dictionary<IWeightedNetwork, SnakeGame> networkAndSnakeGame = SetupAlgorithmDictionary();
                 int counter = 0;
                 foreach (KeyValuePair<IWeightedNetwork, SnakeGame> networkAndGame in networkAndSnakeGame)
                 {
+                    if (counter > 10)
+                    {
+                        isPrintingMap = false;
+                        nextRoundDelay = 0;
+                    }
+                    networkAndGame.Value.Printer.IsPrintingMap = isPrintingMap;
                     Console.SetCursorPosition(15, 6);
                     Console.Write($"Current Network-Index: {counter.ToString().PadLeft(5)}");
                     ++counter;
@@ -62,8 +73,6 @@ namespace GameOfMasterSnake
                     const int TOTAL_PLAYS_PER_NETWORK = 5;
                     for (int i = 0; i < TOTAL_PLAYS_PER_NETWORK; ++i)
                     {
-                        currentSnakeGame.PlaceSnakeOnMap();
-
                         int iterationsSinceLastFood = 0;
                         int previousSnakeLength = currentSnakeGame.SnakeLength;
                         while (!currentSnakeGame.IsPlayerGameOver())
@@ -78,9 +87,9 @@ namespace GameOfMasterSnake
                                 ? result
                                 : Direction.None);
                             currentSnakeGame.NextRound();
-                            if (NEXT_ROUND_DELAY > 0)
+                            if (nextRoundDelay > 0)
                             {
-                                Thread.Sleep(NEXT_ROUND_DELAY);
+                                Thread.Sleep(nextRoundDelay);
                             }
 
                             ++iterationsSinceLastFood;
@@ -94,10 +103,11 @@ namespace GameOfMasterSnake
                                 break;
                             }
                         }
-                        totalFitness += currentSnakeGame.SnakeLength * currentSnakeGame.TotalMoves;
+                        totalFitness += (currentSnakeGame.SnakeLength - INITIAL_SNAKE_LENGTH) * currentSnakeGame.TotalMoves;
+                        networkAndGame.Value.InitializeGame();
+                        networkAndGame.Value.PlaceSnakeOnMap();
                     }
-                    algorithm.SetFitness(currentNetwork, totalFitness);
-                    networkAndGame.Value.InitializeGame();
+                    algorithm.SetFitness(currentNetwork, totalFitness / TOTAL_PLAYS_PER_NETWORK);
                 }
                 algorithm.SortByFitness();
                 double[] fitnesses = algorithm.GetFitnesses();
@@ -117,7 +127,8 @@ namespace GameOfMasterSnake
             for (int i = 0; i < algorithm.NetworksAndFitness.Count; ++i)
             {
                 SnakeGame game = new SnakeGame(HEIGHTS_GAME, WIDTH_GAME, INITIAL_SNAKE_LENGTH);
-                game.Printer.IsPrintingMap = IS_PRINTING_MAP;
+                game.Printer.IsPrintingMap = isPrintingMap;
+                game.PlaceSnakeOnMap();
                 networkAndSnakeGame.Add(algorithm.NetworksAndFitness.Select(x => x.Key).ElementAt(i), game);
             }
             return networkAndSnakeGame;
