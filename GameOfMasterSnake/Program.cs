@@ -15,9 +15,9 @@ namespace GameOfMasterSnake
 {
     internal static class Program
     {
-        private const int TOTAL_NETWORKS = 1000;
-        private const int NETWORKS_TO_KEEP = 10;
-        private const int RANDOM_NETWORKS_PER_BREEDING = 100;
+        private const int TOTAL_NETWORKS = 10000;
+        private const int NETWORKS_TO_KEEP = 100;
+        private const int RANDOM_NETWORKS_PER_BREEDING = 1000;
         private const int INPUT_NODES = 9;
         private const int HIDDEN_NODS = 10;
         private const int HIDDEN_LAYERS = 5;
@@ -25,16 +25,19 @@ namespace GameOfMasterSnake
         private const double MUTATION_CHANCE = 0.1;
         private const double MUTATION_RATE = 0.1;
 
+        private const int FORCE_BREAK_AFTER_ITERATIONS = 50;
+
         private static readonly GeneticAlgorithm algorithm = new GeneticAlgorithm(TOTAL_NETWORKS, INPUT_NODES, HIDDEN_NODS, HIDDEN_LAYERS, OUTPUT_NODES);
 
         private const int HEIGHTS_GAME = 10;
         private const int WIDTH_GAME = 10;
         private const int INITIAL_SNAKE_LENGTH = 5;
 
-        private static bool isPrintingMap = false;
+        private static bool isPrintingMap;
         private static int nextRoundDelay = 0;
 
-        private static object setFitnessLock = new object();
+        private static readonly object setFitnessLock = new object();
+
         private static void Main()
         {
             algorithm.NetworksToKeep = NETWORKS_TO_KEEP;
@@ -43,18 +46,9 @@ namespace GameOfMasterSnake
             algorithm.RandomNetworkAmount = RANDOM_NETWORKS_PER_BREEDING;
             algorithm.PoolGenerator = new FitnessBasedPoolGenerator();
 
-            const int FORCE_BREAK_AFTER_ITERATIONS = 50;
-
             int generation = 0;
             while (true)
             {
-                //if (generation % 100 == 0)
-                //{
-                //    isPrintingMap = true;
-                //    nextRoundDelay = 100;
-                //}
-                Console.SetCursorPosition(15, 5);
-                Console.Write($"Generation: {generation}");
                 Dictionary<IWeightedNetwork, SnakeGame> networkAndSnakeGame = SetupAlgorithmDictionary();
                 Task[] tasks = new Task[networkAndSnakeGame.Count];
                 int counter = 0;
@@ -62,86 +56,114 @@ namespace GameOfMasterSnake
                 foreach (KeyValuePair<IWeightedNetwork, SnakeGame> networkAndGame in networkAndSnakeGame)
                 {
                     KeyValuePair<IWeightedNetwork, SnakeGame> currentNetworkAndGame = networkAndGame;
-                    tasks[counter++] = Task.Factory.StartNew(() =>
-                    {
-
-                        //if (counter > 10)
-                        //{
-                        //    isPrintingMap = false;
-                        //    nextRoundDelay = 0;
-                        //}
-                        //currentNetworkAndGame.Value.Printer.IsPrintingMap = isPrintingMap;
-                        //Console.SetCursorPosition(15, 6);
-                        //Console.Write($"Current Network-Index: {counter.ToString().PadLeft(5)}");
-                        //++counter;
-                        SnakeGame currentSnakeGame = currentNetworkAndGame.Value;
-                        IWeightedNetwork currentNetwork = currentNetworkAndGame.Key;
-
-                        double totalFitness = 0.0;
-                        const int TOTAL_PLAYS_PER_NETWORK = 10;
-                        for (int i = 0; i < TOTAL_PLAYS_PER_NETWORK; ++i)
-                        {
-                            int iterationsSinceLastFood = 0;
-                            int previousSnakeLength = currentSnakeGame.SnakeLength;
-                            while (!currentSnakeGame.IsPlayerGameOver())
-                            {
-                                double[] input = GetNetworkInput(currentSnakeGame);
-                                currentNetwork.SetInput(input);
-                                currentNetwork.Propagate();
-                                double[] output = currentNetwork.GetOutput();
-
-                                double maxNumber = output.Max();
-                                int index = output.ToList().IndexOf(maxNumber);
-                                Direction newDirection = Enum.TryParse(index.ToString(), out Direction result)
-                                    ? result
-                                    : Direction.None;
-
-                                //string stringNumberToParse = (Math.Round(output[0], 0) % 4).ToString();
-                                //string stringNumberToParse = Math.Round(4 / (1 + output[0]), 0).ToString();
-                                //Direction newDirection = Enum.TryParse(stringNumberToParse, out Direction result)
-                                //    ? result
-                                //    : Direction.None;
-                                currentSnakeGame.SetSnakeDirection(newDirection);
-
-                                currentSnakeGame.NextRound();
-                                if (nextRoundDelay > 0)
-                                {
-                                    Thread.Sleep(nextRoundDelay);
-                                }
-
-                                ++iterationsSinceLastFood;
-                                if (currentSnakeGame.SnakeLength > previousSnakeLength)
-                                {
-                                    iterationsSinceLastFood = 0;
-                                    previousSnakeLength = currentSnakeGame.SnakeLength;
-                                }
-                                if (iterationsSinceLastFood >= FORCE_BREAK_AFTER_ITERATIONS)
-                                {
-                                    break;
-                                }
-                            }
-                            //isPrintingMap = false;
-                            nextRoundDelay = 0;
-                            totalFitness += (currentSnakeGame.SnakeLength - INITIAL_SNAKE_LENGTH) * currentSnakeGame.TotalMoves;
-                            currentNetworkAndGame.Value.InitializeGame();
-                            currentNetworkAndGame.Value.PlaceSnakeOnMap();
-                        }
-                        lock (setFitnessLock)
-                        {
-                            algorithm.SetFitness(currentNetwork, totalFitness / TOTAL_PLAYS_PER_NETWORK);
-                        }
-                    });
+                    tasks[counter++] = Task.Factory.StartNew(() => RunSnakeGame(currentNetworkAndGame));
                 }
                 Task.WaitAll(tasks);
+
+                Console.SetCursorPosition(15, 5);
+                Console.Write($"Generation: {generation}");
+
                 algorithm.SortByFitness();
+
                 double[] fitnesses = algorithm.GetFitnesses();
                 for (int i = 0; i < 10; ++i)
                 {
                     Console.SetCursorPosition(15, 7 + i);
                     Console.Write($"{i + 1}: {fitnesses[i].ToString().PadLeft(15)} ID: {algorithm.NetworksAndFitness.Where(x => x.Value == fitnesses[i]).Select(x => x.Key.ID).First()}");
+
+                    Console.SetCursorPosition(15, 3);
+                    Console.Write($"Average: {fitnesses.Average()}");
                 }
+
+                Console.SetCursorPosition(15, 17);
+                Console.Write($"{fitnesses.Length}: {fitnesses.Min().ToString().PadLeft(15)} ID: {algorithm.NetworksAndFitness.Where(x => x.Value == fitnesses.LastOrDefault()).Select(x => x.Key.ID).First()}");
+
+                ReplayWithBestNetwork();
+
                 algorithm.BreedBestNetworks();
                 ++generation;
+            }
+        }
+
+        private static void RunSnakeGame(KeyValuePair<IWeightedNetwork, SnakeGame> networkAndGame, bool setfitness = true)
+        {
+            SnakeGame currentSnakeGame = networkAndGame.Value;
+            IWeightedNetwork currentNetwork = networkAndGame.Key;
+
+            double totalFitness = 0.0;
+            const int TOTAL_PLAYS_PER_NETWORK = 10;
+            for (int i = 0; i < TOTAL_PLAYS_PER_NETWORK; ++i)
+            {
+                int iterationsSinceLastFood = 0;
+                int previousSnakeLength = currentSnakeGame.SnakeLength;
+                while (!currentSnakeGame.IsPlayerGameOver())
+                {
+                    double[] input = GetNetworkInput(currentSnakeGame);
+                    currentNetwork.SetInput(input);
+                    currentNetwork.Propagate();
+                    double[] output = currentNetwork.GetOutput();
+
+                    double maxNumber = output.Max();
+                    int index = output.ToList().IndexOf(maxNumber);
+
+                    if (currentSnakeGame.Printer.IsPrintingMap)
+                    {
+                        ConsoleColor previousColor = Console.ForegroundColor;
+                        for(int j = 0; j < output.Length; ++j)
+                        {
+                            if(j == index)
+                            {
+                                Console.ForegroundColor = ConsoleColor.DarkRed;
+                            }
+                            Console.SetCursorPosition(0, currentSnakeGame.Map.Height + j + 1);
+                            Console.Write($"{Enum.GetValues(typeof(Direction)).GetValue(j)}");
+                            Console.ForegroundColor = previousColor;
+                        }
+                    }
+
+                    Direction newDirection = Enum.TryParse(index.ToString(), out Direction result)
+                        ? result
+                        : Direction.None;
+
+                    if(newDirection == Direction.Up && currentSnakeGame.Printer.IsPrintingMap)
+                    {
+
+                    }
+
+                    //string stringNumberToParse = (Math.Round(output[0], 0) % 4).ToString();
+                    //string stringNumberToParse = Math.Round(4 / (1 + output[0]), 0).ToString();
+                    //Direction newDirection = Enum.TryParse(stringNumberToParse, out Direction result)
+                    //    ? result
+                    //    : Direction.None;
+                    currentSnakeGame.SetSnakeDirection(newDirection);
+
+                    currentSnakeGame.NextRound();
+                    if (nextRoundDelay > 0)
+                    {
+                        Thread.Sleep(nextRoundDelay);
+                    }
+
+                    ++iterationsSinceLastFood;
+                    if (currentSnakeGame.SnakeLength > previousSnakeLength)
+                    {
+                        iterationsSinceLastFood = 0;
+                        previousSnakeLength = currentSnakeGame.SnakeLength;
+                    }
+                    if (iterationsSinceLastFood >= FORCE_BREAK_AFTER_ITERATIONS)
+                    {
+                        break;
+                    }
+                }
+                totalFitness += (currentSnakeGame.SnakeLength - INITIAL_SNAKE_LENGTH) * currentSnakeGame.TotalMoves;
+                networkAndGame.Value.InitializeGame();
+                networkAndGame.Value.PlaceSnakeOnMap();
+            }
+            if (setfitness)
+            {
+                lock (setFitnessLock)
+                {
+                    algorithm.SetFitness(currentNetwork, totalFitness / TOTAL_PLAYS_PER_NETWORK);
+                }
             }
         }
 
@@ -197,8 +219,6 @@ namespace GameOfMasterSnake
 
         private static int GetObstacleDistance(SnakeGame game, Direction direction)
         {
-            bool tileFound = false;
-            int value = 0;
             ITile tile;
             switch (direction)
             {
@@ -242,72 +262,9 @@ namespace GameOfMasterSnake
                     return tile == null
                         ? 1
                         : tile.YPos - game.SnakeYPos;
-
-                    //for (int xPos = game.SnakeXPos - 1; xPos >= 0; --xPos)
-                    //{
-                    //    if (game.Map.GetTile(xPos, game.SnakeYPos).Value == TileValues.Snake)
-                    //    {
-                    //        value = game.SnakeXPos - xPos - 1;
-                    //        value = value >= 0 ? value : -value;
-                    //        tileFound = true;
-                    //        break;
-                    //    }
-                    //}
-                    //if (!tileFound)
-                    //{
-                    //    value = game.SnakeXPos;
-                    //}
-                    //break;
-                    //case Direction.Up:
-                    //    for (int yPos = game.SnakeYPos - 1; yPos >= 0; --yPos)
-                    //    {
-                    //        if (game.Map.GetTile(game.SnakeXPos, yPos).Value == TileValues.Snake)
-                    //        {
-                    //            value = game.SnakeYPos - yPos - 1;
-                    //            value = value >= 0 ? value : -value;
-                    //            tileFound = true;
-                    //            break;
-                    //        }
-                    //    }
-                    //    if (!tileFound)
-                    //    {
-                    //        value = game.SnakeYPos;
-                    //    }
-                    //    break;
-                    //case Direction.Right:
-                    //    for (int xPos = game.SnakeXPos + 1; xPos < game.Map.Width; ++xPos)
-                    //    {
-                    //        if (game.Map.GetTile(xPos, game.SnakeYPos).Value == TileValues.Snake)
-                    //        {
-                    //            value = game.SnakeXPos - xPos - 1;
-                    //            value = value >= 0 ? value : -value;
-                    //            tileFound = true;
-                    //            break;
-                    //        }
-                    //    }
-                    //    if (!tileFound)
-                    //    {
-                    //        value = game.Map.Width - 1 - game.SnakeXPos;
-                    //    }
-                    //    break;
-                    //case Direction.Down:
-                    //    for (int yPos = game.SnakeYPos + 1; yPos < game.Map.Height; ++yPos)
-                    //    {
-                    //        if (game.Map.GetTile(game.SnakeXPos, yPos).Value == TileValues.Snake)
-                    //        {
-                    //            value = game.SnakeYPos - yPos - 1;
-                    //            value = value >= 0 ? value : -value;
-                    //            tileFound = true;
-                    //            break;
-                    //        }
-                    //    }
-                    //    if (!tileFound)
-                    //    {
-                    //        value = game.Map.Height - 1 - game.SnakeYPos;
-                    //    }
-                    //    break;
+                default:
+                    return -1;
             }
-            return value;
         }
 
         private static double ContainsFood(SnakeGame game, Direction direction)
@@ -373,6 +330,22 @@ namespace GameOfMasterSnake
                 default:
                     return -1;
             }
+        }
+
+        private static void ReplayWithBestNetwork()
+        {
+            SnakeGame game = new SnakeGame(HEIGHTS_GAME, WIDTH_GAME, INITIAL_SNAKE_LENGTH);
+            game.Printer.IsPrintingMap = true;
+            game.InitializeGame();
+            game.PlaceSnakeOnMap();
+            KeyValuePair<IWeightedNetwork, SnakeGame> bestnetworkAndGame = new KeyValuePair<IWeightedNetwork, SnakeGame>(
+                algorithm.NetworksAndFitness[0].Key,
+                game);
+
+            int previousNextRoundDelay = nextRoundDelay;
+            nextRoundDelay = 100;
+            RunSnakeGame(bestnetworkAndGame, false);
+            nextRoundDelay = previousNextRoundDelay;
         }
     }
 }

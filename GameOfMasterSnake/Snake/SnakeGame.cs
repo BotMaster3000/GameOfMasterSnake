@@ -296,13 +296,23 @@ namespace GameOfMasterSnake.Snake
 
         public void SetSnakeDirection(Direction newDirection)
         {
-            int directionFactor = newDirection - Direction;
-            directionFactor = directionFactor <= 0
-                ? -directionFactor
-                : directionFactor;
-            Direction = directionFactor == 1
+            Direction = (Direction == Direction.Up && (newDirection == Direction.Left || newDirection == Direction.Right))
+                ? newDirection
+                : (Direction == Direction.Right && (newDirection == Direction.Up || newDirection == Direction.Down))
+                ? newDirection
+                : (Direction == Direction.Down && (newDirection == Direction.Left || newDirection == Direction.Right))
+                ? newDirection
+                : (Direction == Direction.Left && (newDirection == Direction.Up || newDirection == Direction.Down))
                 ? newDirection
                 : Direction;
+
+            //int directionFactor = newDirection - Direction;
+            //directionFactor = directionFactor <= 0
+            //    ? -directionFactor
+            //    : directionFactor;
+            //Direction = directionFactor == 1
+            //    ? newDirection
+            //    : Direction;
         }
     }
 }
