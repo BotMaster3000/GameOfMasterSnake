@@ -31,6 +31,8 @@ namespace GameOfMasterSnake.Snake
         private readonly int width;
         private readonly int initialSnakeLength;
 
+        public static object RandomNumberLock = new object();
+
         public SnakeGame(int height, int width, int initialSnakeLength)
         {
             this.height = height;
@@ -53,6 +55,8 @@ namespace GameOfMasterSnake.Snake
             FoodYPos = -1;
             IsFoodPlaced = false;
             TotalMoves = 0;
+
+            PlaceFood();
         }
 
         public void BeginGame()
@@ -84,8 +88,13 @@ namespace GameOfMasterSnake.Snake
         {
             while (!IsFoodPlaced)
             {
-                int yPos = RandomNumberGenerator.GetNextNumber(0, Map.Height - 1);
-                int xPos = RandomNumberGenerator.GetNextNumber(0, Map.Width - 1);
+                int yPos;
+                int xPos;
+                lock (RandomNumberLock)
+                {
+                    yPos = RandomNumberGenerator.GetNextNumber(0, Map.Height - 1);
+                    xPos = RandomNumberGenerator.GetNextNumber(0, Map.Width - 1);
+                }
 
                 ITile tile = Map.GetTile(xPos, yPos);
                 if (tile.Value == TileValues.Empty)
@@ -258,13 +267,20 @@ namespace GameOfMasterSnake.Snake
 
         public void PlaceSnakeOnMap()
         {
-            int yPos = RandomNumberGenerator.GetNextNumber(0, Map.Height - 1);
-            int xPos = RandomNumberGenerator.GetNextNumber(0, Map.Width - 1);
+            int yPos;
+            int xPos;
+
+            lock (RandomNumberLock)
+            {
+                yPos = RandomNumberGenerator.GetNextNumber(0, Map.Height - 1);
+                xPos = RandomNumberGenerator.GetNextNumber(0, Map.Width - 1);
+
+                Direction = (Direction)RandomNumberGenerator.GetNextNumber(0, 3);
+            }
 
             SnakeYPos = yPos;
             SnakeXPos = xPos;
 
-            Direction = (Direction)RandomNumberGenerator.GetNextNumber(0, 3);
 
             for (int i = 0; i < Map.Tiles.Length; ++i)
             {
