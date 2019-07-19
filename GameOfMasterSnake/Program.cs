@@ -17,13 +17,13 @@ namespace GameOfMasterSnake
     {
         private const int TOTAL_NETWORKS = 10000;
         private const int NETWORKS_TO_KEEP = 100;
-        private const int RANDOM_NETWORKS_PER_BREEDING = 1000;
+        private const int RANDOM_NETWORKS_PER_BREEDING = 10000;
         private const int INPUT_NODES = 9;
         private const int HIDDEN_NODS = 10;
-        private const int HIDDEN_LAYERS = 5;
+        private const int HIDDEN_LAYERS = 2;
         private const int OUTPUT_NODES = 4;
-        private const double MUTATION_CHANCE = 0.1;
-        private const double MUTATION_RATE = 0.1;
+        private const double MUTATION_CHANCE = 0.5;
+        private const double MUTATION_RATE = 0.5;
 
         private const int FORCE_BREAK_AFTER_ITERATIONS = 50;
 
@@ -154,7 +154,9 @@ namespace GameOfMasterSnake
                         break;
                     }
                 }
-                totalFitness += (currentSnakeGame.SnakeLength - INITIAL_SNAKE_LENGTH) * currentSnakeGame.TotalMoves;
+                //totalFitness += (currentSnakeGame.SnakeLength - INITIAL_SNAKE_LENGTH) * currentSnakeGame.TotalMoves;
+                totalFitness += ((currentSnakeGame.SnakeLength - INITIAL_SNAKE_LENGTH) * currentSnakeGame.TotalMoves) + currentSnakeGame.TotalMoves;
+                //totalFitness += (currentSnakeGame.SnakeLength - INITIAL_SNAKE_LENGTH);
                 networkAndGame.Value.InitializeGame();
                 networkAndGame.Value.PlaceSnakeOnMap();
             }
@@ -230,7 +232,7 @@ namespace GameOfMasterSnake
                             .OrderByDescending(x => x.XPos)
                             .FirstOrDefault();
                     return tile == null
-                        ? 1
+                        ? game.SnakeXPos + 1
                         : game.SnakeXPos - tile.XPos;
                 case Direction.Right:
                     tile = game.Map.Tiles.Where(x
@@ -240,7 +242,7 @@ namespace GameOfMasterSnake
                             .OrderBy(x => x.XPos)
                             .FirstOrDefault();
                     return tile == null
-                        ? 1
+                        ? game.Map.Width - game.SnakeXPos
                         : tile.XPos - game.SnakeXPos;
                 case Direction.Up:
                     tile = game.Map.Tiles.Where(x
@@ -250,7 +252,7 @@ namespace GameOfMasterSnake
                             .OrderByDescending(x => x.YPos)
                             .FirstOrDefault();
                     return tile == null
-                        ? 1
+                        ? game.SnakeYPos + 1
                         : game.SnakeYPos - tile.YPos;
                 case Direction.Down:
                     tile = game.Map.Tiles.Where(x
@@ -260,7 +262,7 @@ namespace GameOfMasterSnake
                             .OrderBy(x => x.YPos)
                             .FirstOrDefault();
                     return tile == null
-                        ? 1
+                        ? game.Map.Height - game.SnakeYPos
                         : tile.YPos - game.SnakeYPos;
                 default:
                     return -1;
@@ -274,22 +276,22 @@ namespace GameOfMasterSnake
                 case Direction.Up:
                     return (game.SnakeXPos == game.FoodXPos
                             && game.SnakeYPos > game.FoodYPos)
-                        ? 1
+                        ? 5
                         : 0;
                 case Direction.Down:
                     return (game.SnakeXPos == game.FoodXPos
                             && game.SnakeYPos < game.FoodYPos)
-                        ? 1
+                        ? 5
                         : 0;
                 case Direction.Left:
                     return (game.SnakeXPos > game.FoodXPos
                             && game.SnakeYPos == game.FoodYPos)
-                        ? 1
+                        ? 5
                         : 0;
                 case Direction.Right:
                     return (game.SnakeXPos < game.FoodXPos
                             && game.SnakeYPos == game.FoodYPos)
-                        ? 1
+                        ? 5
                         : 0;
                 default:
                     return -1;
