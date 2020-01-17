@@ -17,7 +17,7 @@ namespace GameOfMasterSnake
     {
         private const int TOTAL_NETWORKS = 10000;
         private const int NETWORKS_TO_KEEP = 100;
-        private const int RANDOM_NETWORKS_PER_BREEDING = 10000;
+        private const int RANDOM_NETWORKS_PER_BREEDING = 2000;
         private const int INPUT_NODES = 9;
         private const int HIDDEN_NODS = 10;
         private const int HIDDEN_LAYERS = 2;
@@ -56,7 +56,9 @@ namespace GameOfMasterSnake
                 foreach (KeyValuePair<IWeightedNetwork, SnakeGame> networkAndGame in networkAndSnakeGame)
                 {
                     KeyValuePair<IWeightedNetwork, SnakeGame> currentNetworkAndGame = networkAndGame;
-                    tasks[counter++] = Task.Factory.StartNew(() => RunSnakeGame(currentNetworkAndGame));
+                    tasks[counter++] = Task.Factory.StartNew(
+                        () => RunSnakeGame(currentNetworkAndGame)
+                        , TaskCreationOptions.LongRunning);
                 }
                 Task.WaitAll(tasks);
 
@@ -78,7 +80,10 @@ namespace GameOfMasterSnake
                 Console.SetCursorPosition(15, 17);
                 Console.Write($"{fitnesses.Length}: {fitnesses.Min().ToString().PadLeft(15)} ID: {algorithm.NetworksAndFitness.Where(x => x.Value == fitnesses.LastOrDefault()).Select(x => x.Key.ID).First()}");
 
-                ReplayWithBestNetwork();
+                if(generation % 10 == 0)
+                {
+                    ReplayWithBestNetwork();
+                }
 
                 algorithm.BreedBestNetworks();
                 ++generation;
