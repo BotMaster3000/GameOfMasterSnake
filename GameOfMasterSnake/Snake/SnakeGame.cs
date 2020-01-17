@@ -81,6 +81,7 @@ namespace GameOfMasterSnake.Snake
         {
             PlaceFood();
             MoveSnake();
+            PlaceFood();
             DrawMap();
         }
 
@@ -230,7 +231,7 @@ namespace GameOfMasterSnake.Snake
             if (!IsPlayerOutOfBound())
             {
                 TileValues tileValue = GetNextTileValue();
-                return tileValue == TileValues.None || tileValue == TileValues.Snake;
+                return tileValue /*== TileValues.None || tileValue*/ == TileValues.Snake;
             }
             return true;
         }
